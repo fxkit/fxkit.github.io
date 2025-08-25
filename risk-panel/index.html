@@ -10,8 +10,10 @@
       let balance = parseFloat(document.getElementById("balance").value);
       let riskPercent = parseFloat(document.getElementById("risk").value);
       let slPips = parseFloat(document.getElementById("sl").value);
+      let rr = parseFloat(document.getElementById("rr").value);
+      let pair = document.getElementById("pair").value;
 
-      if (!balance || !riskPercent || !slPips) {
+      if (!balance || !riskPercent || !slPips || !pair || !rr) {
         document.getElementById("result").innerHTML =
                 `<p class="text-red-500">⚠️ Введите все значения</p>`;
         return;
@@ -20,13 +22,23 @@
       let risk = riskPercent / 100;
       let riskAmount = balance * risk;
 
-      // Упрощённая формула: размер лота ≈ риск / SL / 10
-      let lotSize = riskAmount / slPips / 10;
+      // Стоимость пункта (pip value) для 1 лота
+      let pipValue = 10;
+      if (pair.includes("JPY")) pipValue = 9;
+      if (pair.includes("XAU")) pipValue = 1; // условно
+
+      // Расчёт размера позиции
+      let lotSize = riskAmount / (slPips * pipValue);
+
+      // Потенциальная прибыль по R:R
+      let potentialProfit = riskAmount * rr;
 
       document.getElementById("result").innerHTML = `
         <div class="p-4 mt-4 bg-green-100 rounded-xl">
           <p><b>Риск:</b> ${riskAmount.toFixed(2)} USD</p>
           <p><b>Размер позиции:</b> ${lotSize.toFixed(2)} лота</p>
+          <p><b>R:R:</b> 1:${rr}</p>
+          <p><b>Потенциальная прибыль:</b> ${potentialProfit.toFixed(2)} USD</p>
         </div>
       `;
     }
@@ -44,6 +56,17 @@
 
   <label class="block mb-2 font-medium">Стоп-лосс (пункты):</label>
   <input id="sl" type="number" class="w-full mb-4 p-2 border rounded-lg" />
+
+  <label class="block mb-2 font-medium">Торговая пара:</label>
+  <select id="pair" class="w-full mb-4 p-2 border rounded-lg">
+    <option value="EURUSD">EURUSD</option>
+    <option value="GBPUSD">GBPUSD</option>
+    <option value="USDJPY">USDJPY</option>
+    <option value="XAUUSD">XAUUSD (Gold)</option>
+  </select>
+
+  <label class="block mb-2 font-medium">R:R (например, 2 = 1:2):</label>
+  <input id="rr" type="number" class="w-full mb-4 p-2 border rounded-lg" value="2" />
 
   <button onclick="calculate()" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition">
     Рассчитать
