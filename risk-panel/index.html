@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Risk Management Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function calculate() {
+      let balance = parseFloat(document.getElementById("balance").value);
+      let riskPercent = parseFloat(document.getElementById("risk").value);
+      let slPips = parseFloat(document.getElementById("sl").value);
+
+      if (!balance || !riskPercent || !slPips) {
+        document.getElementById("result").innerHTML =
+                `<p class="text-red-500">⚠️ Введите все значения</p>`;
+        return;
+      }
+
+      let risk = riskPercent / 100;
+      let riskAmount = balance * risk;
+
+      // Упрощённая формула: размер лота ≈ риск / SL / 10
+      let lotSize = riskAmount / slPips / 10;
+
+      document.getElementById("result").innerHTML = `
+        <div class="p-4 mt-4 bg-green-100 rounded-xl">
+          <p><b>Риск:</b> ${riskAmount.toFixed(2)} USD</p>
+          <p><b>Размер позиции:</b> ${lotSize.toFixed(2)} лота</p>
+        </div>
+      `;
+    }
+  </script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+<div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
+  <h2 class="text-xl font-bold mb-4 text-center">📊 Risk Management Panel</h2>
+
+  <label class="block mb-2 font-medium">Баланс ($):</label>
+  <input id="balance" type="number" class="w-full mb-4 p-2 border rounded-lg" />
+
+  <label class="block mb-2 font-medium">Риск (%):</label>
+  <input id="risk" type="number" class="w-full mb-4 p-2 border rounded-lg" />
+
+  <label class="block mb-2 font-medium">Стоп-лосс (пункты):</label>
+  <input id="sl" type="number" class="w-full mb-4 p-2 border rounded-lg" />
+
+  <button onclick="calculate()" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition">
+    Рассчитать
+  </button>
+
+  <div id="result" class="text-lg mt-4"></div>
+</div>
+</body>
+</html>
