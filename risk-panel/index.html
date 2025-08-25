@@ -5,8 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Risk Management Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Подключаем SDK cTrader -->
+  <script src="https://plugins.ctrader.com/sdk/ctrader-sdk-v1.js"></script>
   <script>
-    function calculate() {
+    let accountBalance = 0;
+    let accountCurrency = "USD";
+
+    // Загружаем данные аккаунта при старте
+    async function initAccount() {
+      try {
+        const account = await cTrader.getAccount();
+        accountBalance = account.balance;
+        accountCurrency = account.currency;
+
+        document.getElementById("balance").value = accountBalance.toFixed(2);
+        document.getElementById("currencyLabel").innerText = accountCurrency;
+      } catch (e) {
+        console.error("Ошибка получения аккаунта:", e);
+      }
+    }
+
+    async function calculate() {
       let balance = parseFloat(document.getElementById("balance").value);
       let riskPercent = parseFloat(document.getElementById("risk").value);
       let slPips = parseFloat(document.getElementById("sl").value);
@@ -22,10 +41,10 @@
       let risk = riskPercent / 100;
       let riskAmount = balance * risk;
 
-      // Стоимость пункта (pip value) для 1 лота
+      // Стоимость пункта (упрощённо)
       let pipValue = 10;
       if (pair.includes("JPY")) pipValue = 9;
-      if (pair.includes("XAU")) pipValue = 1; // условно
+      if (pair.includes("XAU")) pipValue = 1;
 
       // Расчёт размера позиции
       let lotSize = riskAmount / (slPips * pipValue);
@@ -35,21 +54,24 @@
 
       document.getElementById("result").innerHTML = `
         <div class="p-4 mt-4 bg-green-100 rounded-xl">
-          <p><b>Риск:</b> ${riskAmount.toFixed(2)} USD</p>
+          <p><b>Баланс:</b> ${balance.toFixed(2)} ${accountCurrency}</p>
+          <p><b>Риск:</b> ${riskAmount.toFixed(2)} ${accountCurrency}</p>
           <p><b>Размер позиции:</b> ${lotSize.toFixed(2)} лота</p>
           <p><b>R:R:</b> 1:${rr}</p>
-          <p><b>Потенциальная прибыль:</b> ${potentialProfit.toFixed(2)} USD</p>
+          <p><b>Потенциальная прибыль:</b> ${potentialProfit.toFixed(2)} ${accountCurrency}</p>
         </div>
       `;
     }
+
+    window.onload = initAccount;
   </script>
 </head>
 <body class="bg-gray-100 p-6 font-sans">
 <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6">
   <h2 class="text-xl font-bold mb-4 text-center">📊 Risk Management Panel</h2>
 
-  <label class="block mb-2 font-medium">Баланс ($):</label>
-  <input id="balance" type="number" class="w-full mb-4 p-2 border rounded-lg" />
+  <label class="block mb-2 font-medium">Баланс (<span id="currencyLabel">USD</span>):</label>
+  <input id="balance" type="number" class="w-full mb-4 p-2 border rounded-lg" readonly />
 
   <label class="block mb-2 font-medium">Риск (%):</label>
   <input id="risk" type="number" class="w-full mb-4 p-2 border rounded-lg" />
